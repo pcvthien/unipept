@@ -2,6 +2,8 @@ class Api::ApiController < ApplicationController
 
   respond_to :json
 
+  before_filter :disable_api
+
   before_filter :set_headers, only: [:pept2taxa, :pept2lca, :pept2prot, :taxa2lca, :taxonomy]
   before_filter :set_params, only: [:pept2taxa, :pept2lca, :pept2prot, :taxa2lca, :taxonomy]
   before_filter :set_query, only: [:pept2taxa, :pept2lca, :taxonomy]
@@ -144,6 +146,10 @@ class Api::ApiController < ApplicationController
     if Rails.application.config.unipept_API_logging
       StatHat::API.ez_post_count('API - ' + action_name, Rails.application.config.unipept_stathat_key, 1)
     end
+  end
+
+  def disable_api
+    render text: "Please use api.unipept.ugent.be for your API requests."
   end
 
   # enable cross origin requests
