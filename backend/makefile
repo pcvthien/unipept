@@ -120,6 +120,19 @@ $(TABDIR)/sequences.tsv.gz: $(INTDIR)/sequences.tsv.gz $(INTDIR)/LCAs.tsv.gz $(I
 
 # }}}
 
+# k-mers with LCA {{{
+$(INTDIR)/kmer_taxon.tsv.gz: generate_kmers.py $(TABDIR)/uniprot_entries.tsv.gz
+	echo "Starting k-mer generation."
+	python3 generate_kmers.py $(K) <(zcat $(TABDIR)/uniprot_entries.tsv.gz) | \
+	    gzip >$@
+	echo "Finished k-mer generation."
+
+$(INTDIR)/kmer_taxon_sorted.tsv.gz: $(INTDIR)/kmer_taxon.tsv.gz
+	echo "Sorting k-mers."
+	zcat $(INTDIR)/kmer_taxon.tsv.gz | sort -S 20% -k1 -u | gzip >$@
+	echo "Done sorting k-mers."
+# }}}
+
 # Proteomes {{{ ----------------------------------------------------------------
 $(TABDIR)/proteomes.tsv.gz: $(INTDIR)/proteomes.tsv.gz proteomes.sh type_strains.sh
 	echo "Starting fetching proteome info."
