@@ -17,7 +17,8 @@ SRC=$(shell find src/ -type f -name '*.java')
 JAR=target/unipept-0.0.1-SNAPSHOT.jar
 PAC=org.unipept.tools
 
-all: $(TABDIR)/taxons.tsv.gz $(TABDIR)/lineages.tsv.gz $(TABLES) $(TABDIR)/sequences.tsv.gz $(TABDIR)/proteomes.tsv.gz
+.PHONY: all jar taxons tables sequences proteomes download
+all: taxons tables sequences proteomes
 jar: $(JAR)
 taxons: $(TABDIR)/taxons.tsv.gz $(TABDIR)/lineages.tsv.gz
 tables: $(TABLES)
@@ -56,7 +57,7 @@ $(UNIDIR)/uniprot_sprot.xml.gz $(UNIDIR)/uniprot_trembl.xml.gz:
 # }}}
 
 # Taxons and Lineages {{{ ------------------------------------------------------
-$(TABDIR)/taxons.tsv.gz $(TABDIR)/lineages.tsv.gz: $(TAXDIR)/names.dmp $(TAXDIR)/nodes.dmp
+$(TABDIR)/taxons.tsv.gz $(TABDIR)/lineages.tsv.gz: $(JAR) $(TAXDIR)/names.dmp $(TAXDIR)/nodes.dmp
 	echo "Starting calculation of taxons and lineages tables."
 	mkdir -p $(dir $@)
 	java $(JMEMMIN) $(JMEMMAX) -cp $(JAR) $(PAC).NamesNodes2TaxonsLineages $(TAXDIR)/names.dmp $(TAXDIR)/nodes.dmp $(TABDIR)/taxons.tsv.gz $(TABDIR)/lineages.tsv.gz
@@ -64,7 +65,7 @@ $(TABDIR)/taxons.tsv.gz $(TABDIR)/lineages.tsv.gz: $(TAXDIR)/names.dmp $(TAXDIR)
 # }}}
 
 # Uniprot entries, peptides, sequences and cross references {{{ ----------------
-$(TABLES): $(TABDIR)/taxons.tsv.gz $(UNIDIR)/uniprot_sprot.xml.gz $(UNIDIR)/uniprot_trembl.xml.gz
+$(TABLES): $(JAR) $(TABDIR)/taxons.tsv.gz $(UNIDIR)/uniprot_sprot.xml.gz $(UNIDIR)/uniprot_trembl.xml.gz
 	echo "Started calculation of most tables."
 	mkdir -p $(BDBDIR)
 	mkdir -p $(INTDIR)
@@ -96,14 +97,16 @@ $(INTDIR)/original_sequence_taxon.tsv.gz: $(TABDIR)/peptides.tsv.gz $(TABDIR)/un
 		> $@
 	echo "Finished the joining of non-equalized peptides and uniprot entries."
 
-$(INTDIR)/LCAs.tsv.gz: $(TABDIR)/lineages.tsv.gz $(INTDIR)/sequence_taxon.tsv.gz
+$(INTDIR)/LCAs.tsv.gz: $(JAR) $(TABDIR)/lineages.tsv.gz $(INTDIR)/sequence_taxon.tsv.gz
 	echo "Starting the calculation equalized LCA's."
-	java $(JMEMMIN) $(JMEMMAX) -cp $(JAR) $(PAC).LineagesSequencesTaxons2LCAs $^ $@
+	java $(JMEMMIN) $(JMEMMAX) -cp $(JAR) $(PAC).LineagesSequencesTaxons2LCAs \
+	    $(TABDIR)/lineages.tsv.gz $(INTDIR)/sequence_taxon.tsv.gz $@
 	echo "Finished the calculation equalized LCA's."
 
-$(INTDIR)/original_LCAs.tsv.gz: $(TABDIR)/lineages.tsv.gz $(INTDIR)/original_sequence_taxon.tsv.gz
+$(INTDIR)/original_LCAs.tsv.gz: $(JAR) $(TABDIR)/lineages.tsv.gz $(INTDIR)/original_sequence_taxon.tsv.gz
 	echo "Starting the calculation non-equalized LCA's."
-	java $(JMEMMIN) $(JMEMMAX) -cp $(JAR) $(PAC).LineagesSequencesTaxons2LCAs $^ $@
+	java $(JMEMMIN) $(JMEMMAX) -cp $(JAR) $(PAC).LineagesSequencesTaxons2LCAs \
+	    $(TABDIR)/lineages.tsv.gz $(INTDIR)/original_sequence_taxon.tsv.gz $@
 	echo "Finished the calculation non-equalized LCA's."
 
 $(TABDIR)/sequences.tsv.gz: $(INTDIR)/sequences.tsv.gz $(INTDIR)/LCAs.tsv.gz $(INTDIR)/original_LCAs.tsv.gz
