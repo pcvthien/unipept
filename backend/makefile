@@ -131,6 +131,12 @@ $(INTDIR)/kmer_taxon_sorted.tsv.gz: $(INTDIR)/kmer_taxon.tsv.gz
 	echo "Sorting k-mers."
 	zcat $(INTDIR)/kmer_taxon.tsv.gz | sort -S 20% -k1 -u | gzip >$@
 	echo "Done sorting k-mers."
+
+$(INTDIR)/kmer_LCAs.tsv.gz: $(JAR) $(TABDIR)/lineages.tsv.gz $(INTDIR)/kmer_taxon_sorted.tsv.gz
+	echo "Starting the calculation of equalized LCA's."
+	java $(JMEMMIN) $(JMEMMAX) -cp $(JAR) $(PAC).LineagesSequencesTaxons2LCAs \
+	    "$(TABDIR)/lineages.tsv.gz" "$(INTDIR)/kmer_taxon_sorted.tsv.gz" $@ 'kmer'
+	echo "Finished the calculation of equalized LCA's."
 # }}}
 
 # Proteomes {{{ ----------------------------------------------------------------

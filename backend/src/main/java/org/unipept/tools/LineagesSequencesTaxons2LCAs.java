@@ -82,6 +82,38 @@ public class LineagesSequencesTaxons2LCAs {
         handleLCA(currentSequence, calculateLCA(taxa));
     }
 
+    public void calculateKmerLCAs(String file) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(file))), 67108864);
+
+        int count = 0;
+        String currentKmer = null;
+        Collection<Integer> taxa = new ArrayList<>();
+        String line;
+        while ((line = br.readLine()) != null) {
+            count++;
+            if (count % 10000000 == 0) {
+                System.err.println(new Timestamp(System.currentTimeMillis()) + ": " + count);
+            }
+
+            // outperforms split by at least 20%
+            int t = line.indexOf('\t');
+            String kmer = line.substring(0, t);
+            int taxonId = Integer.parseInt(line.substring(t + 1));
+
+            if (kmer.equals(currentKmer)) {
+                if (currentKmer != null) {
+                    writer.write(currentKmer + "\t" + calculateLCA(taxa) + '\n');
+                }
+
+                currentKmer = kmer;
+                taxa.clear();
+            }
+
+            taxa.add(taxonId);
+        }
+        writer.write(currentKmer + "\t" + calculateLCA(taxa) + '\n');
+    }
+
     private int calculateLCA(Collection<Integer> taxa) {
         int lca = 1;
         int[][] lineages = taxa.stream()
@@ -142,7 +174,11 @@ public class LineagesSequencesTaxons2LCAs {
             System.err.println(new Timestamp(System.currentTimeMillis()) + ": reading taxonomy");
             LineagesSequencesTaxons2LCAs l = new LineagesSequencesTaxons2LCAs(args[0], args[2]);
             System.err.println(new Timestamp(System.currentTimeMillis()) + ": reading sequences");
-            l.calculateLCAs(args[1]);
+            if (args.length > 3 && args[3].equals("kmer")) {
+                l.calculateKmerLCAs(args[1]);
+            } else {
+                l.calculateLCAs(args[1]);
+            }
             l.close();
         } catch (IOException e) {
             e.printStackTrace();
