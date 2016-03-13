@@ -16,7 +16,7 @@ SRC=$(shell find src/ -type f -name '*.java')
 JAR=target/unipept-0.0.1-SNAPSHOT.jar
 PAC=org.unipept.tools
 
-all: $(TABDIR)/taxons.tsv.gz $(TABDIR)/lineages.tsv.gz $(TABLES) $(TABDIR)/sequences.tsv.gz $(TABDIR)/peptides.tsv.gz $(TABDIR)/proteomes.tsv.gz
+all: $(TABDIR)/taxons.tsv.gz $(TABDIR)/lineages.tsv.gz $(TABLES) $(TABDIR)/sequences.tsv.gz  # $(TABDIR)/peptides.tsv.gz $(TABDIR)/proteomes.tsv.gz
 jar: $(JAR)
 taxons: $(TABDIR)/taxons.tsv.gz $(TABDIR)/lineages.tsv.gz
 tables: $(TABLES)
@@ -88,16 +88,16 @@ $(TABLES): $(TABDIR)/taxons.tsv.gz $(UNIDIR)/uniprot_sprot.xml.gz
 # }}}
 
 # Sequences with LCA {{{ -------------------------------------------------------
-$(INTDIR)/aa_sequence_taxon.tsv.gz: $(INTDIR)/peptides.tsv.gz $(TABDIR)/uniprot_entries.tsv.gz
-	echo "Starting the joining of equalized peptides and uniprot entries."
-	mkdir -p $(INTDIR)
-	join -t '	' -o '1.2,2.2' -j 1 \
-			<(zcat $(INTDIR)/peptides.tsv.gz | awk '{ printf("%012d\t%s\n", $$4, $$2) }') \
-			<(zcat $(TABDIR)/uniprot_entries.tsv.gz | awk '{ printf("%012d\t%s\n", $$1, $$4) }') \
-		| $(SORT) -k1 \
-		| $(GZIP) - \
-		> $@
-	echo "Finished the joining of equalized peptides and uniprot entries."
+# $(INTDIR)/aa_sequence_taxon.tsv.gz: $(INTDIR)/peptides.tsv.gz $(TABDIR)/uniprot_entries.tsv.gz
+#         echo "Starting the joining of equalized peptides and uniprot entries."
+#         mkdir -p $(INTDIR)
+#         join -t '	' -o '1.2,2.2' -j 1 \
+#                         <(zcat $(INTDIR)/peptides.tsv.gz | awk '{ printf("%012d\t%s\n", $$4, $$2) }') \
+#                         <(zcat $(TABDIR)/uniprot_entries.tsv.gz | awk '{ printf("%012d\t%s\n", $$1, $$4) }') \
+#                 | $(SORT) -k1 \
+#                 | $(GZIP) - \
+#                 > $@
+#         echo "Finished the joining of equalized peptides and uniprot entries."
 
 $(INTDIR)/original_aa_sequence_taxon.tsv.gz: $(INTDIR)/peptides.tsv.gz $(TABDIR)/uniprot_entries.tsv.gz
 	echo "Starting the joining of non-equalized peptides and uniprot entries."
@@ -110,10 +110,9 @@ $(INTDIR)/original_aa_sequence_taxon.tsv.gz: $(INTDIR)/peptides.tsv.gz $(TABDIR)
 		> $@
 	echo "Finished the joining of non-equalized peptides and uniprot entries."
 
-$(INTDIR)/sequences.tsv.gz: $(INTDIR)/aa_sequence_taxon.tsv.gz $(INTDIR)/original_aa_sequence_taxon.tsv.gz
+$(INTDIR)/sequences.tsv.gz: $(INTDIR)/original_aa_sequence_taxon.tsv.gz
 	echo "Starting the numbering of sequences."
 	$(SORT) -m \
-			<(zcat $(INTDIR)/aa_sequence_taxon.tsv.gz | cut -f1) \
 			<(zcat $(INTDIR)/original_aa_sequence_taxon.tsv.gz | cut -f1) \
 		| uniq \
 		| cat -n \
@@ -134,14 +133,14 @@ $(TABDIR)/peptides.tsv.gz: $(INTDIR)/peptides.tsv.gz $(INTDIR)/sequences.tsv.gz
 		> $@
 	echo "Finishing the substitution of AA's by ID's for the peptides."
 
-$(INTDIR)/sequence_taxon.tsv.gz: $(INTDIR)/sequences.tsv.gz $(INTDIR)/aa_sequence_taxon.tsv.gz
-	echo "Starting the substitution of AA's by ID's for the sequences"
-	join -t '	' -o '1.1,2.2' -1 2 -2 1 \
-			<(zcat $(INTDIR)/sequences.tsv.gz) \
-			<(zcat $(INTDIR)/aa_sequence_taxon.tsv.gz) \
-		| $(GZIP) - \
-		> $@
-	echo "Finishing the substitution of AA's by ID's for the sequences"
+# $(INTDIR)/sequence_taxon.tsv.gz: $(INTDIR)/sequences.tsv.gz $(INTDIR)/aa_sequence_taxon.tsv.gz
+#         echo "Starting the substitution of AA's by ID's for the sequences"
+#         join -t '	' -o '1.1,2.2' -1 2 -2 1 \
+#                         <(zcat $(INTDIR)/sequences.tsv.gz) \
+#                         <(zcat $(INTDIR)/aa_sequence_taxon.tsv.gz) \
+#                 | $(GZIP) - \
+#                 > $@
+#         echo "Finishing the substitution of AA's by ID's for the sequences"
 
 $(INTDIR)/original_sequence_taxon.tsv.gz: $(INTDIR)/sequences.tsv.gz $(INTDIR)/original_aa_sequence_taxon.tsv.gz
 	echo "Starting the substitution of AA's by ID's for the original sequences"
@@ -152,13 +151,13 @@ $(INTDIR)/original_sequence_taxon.tsv.gz: $(INTDIR)/sequences.tsv.gz $(INTDIR)/o
 		> $@
 	echo "Finishing the substitution of AA's by ID's for the original sequences"
 
-$(INTDIR)/LCAs.tsv.gz: $(TABDIR)/lineages.tsv.gz $(INTDIR)/sequence_taxon.tsv.gz
-	echo "Starting the calculation equalized LCA's."
-	java $(JMEMMIN) $(JMEMMAX) -cp $(JAR) $(PAC).LineagesSequencesTaxons2LCAs \
-		<(zcat $(TABDIR)/lineages.tsv.gz) \
-		<(zcat $(INTDIR)/sequence_taxon.tsv.gz) \
-		>($(GZIP) - > $(INTDIR)/LCAs.tsv.gz)
-	echo "Finished the calculation equalized LCA's."
+# $(INTDIR)/LCAs.tsv.gz: $(TABDIR)/lineages.tsv.gz $(INTDIR)/sequence_taxon.tsv.gz
+#         echo "Starting the calculation equalized LCA's."
+#         java $(JMEMMIN) $(JMEMMAX) -cp $(JAR) $(PAC).LineagesSequencesTaxons2LCAs \
+#                 <(zcat $(TABDIR)/lineages.tsv.gz) \
+#                 <(zcat $(INTDIR)/sequence_taxon.tsv.gz) \
+#                 >($(GZIP) - > $(INTDIR)/LCAs.tsv.gz)
+#         echo "Finished the calculation equalized LCA's."
 
 $(INTDIR)/original_LCAs.tsv.gz: $(TABDIR)/lineages.tsv.gz $(INTDIR)/original_sequence_taxon.tsv.gz
 	echo "Starting the calculation non-equalized LCA's."
@@ -168,11 +167,10 @@ $(INTDIR)/original_LCAs.tsv.gz: $(TABDIR)/lineages.tsv.gz $(INTDIR)/original_seq
 		>($(GZIP) - > $(INTDIR)/original_LCAs.tsv.gz)
 	echo "Finished the calculation non-equalized LCA's."
 
-$(TABDIR)/sequences.tsv.gz: $(INTDIR)/sequences.tsv.gz $(INTDIR)/LCAs.tsv.gz $(INTDIR)/original_LCAs.tsv.gz
+$(TABDIR)/sequences.tsv.gz: $(INTDIR)/sequences.tsv.gz $(INTDIR)/original_LCAs.tsv.gz
 	echo "Starting the creation of the sequences table."
 	zcat $(INTDIR)/sequences.tsv.gz \
 		| join --nocheck-order -a1 -t '	' -o "1.1 1.2 2.2" - <(zcat $(INTDIR)/original_LCAs.tsv.gz) \
-		| join --nocheck-order -a1 -t '	' -o "1.1 1.2 1.3 2.2" - <(zcat $(INTDIR)/LCAs.tsv.gz) \
 		| $(GZIP) - \
 		> $@
 	echo "Finished the creation of the sequences table."
