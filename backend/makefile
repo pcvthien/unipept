@@ -22,7 +22,7 @@ taxons: $(TABDIR)/taxons.tsv.gz $(TABDIR)/lineages.tsv.gz
 tables: $(TABLES)
 sequences: $(TABDIR)/sequences.tsv.gz
 proteomes: $(TABDIR)/proteomes.tsv.gz
-download: $(TAXDIR)/taxdmp.zip $(UNIDIR)/uniprot_sprot.xml.gz  # $(UNIDIR)/uniprot_trembl.xml.gz
+download: $(TAXDIR)/taxdmp.zip $(UNIDIR)/uniprot_sprot.xml.gz $(UNIDIR)/uniprot_trembl.xml.gz
 
 # Compiling {{{ ----------------------------------------------------------------
 # TODO:
@@ -46,7 +46,7 @@ $(INTDIR)/names.dmp $(INTDIR)/nodes.dmp: $(TAXDIR)/taxdmp.zip
 	unzip -DD -o $< $(notdir $@) -d $(dir $@)
 	echo "Finished unzipping names and nodes from the taxon dump."
 
-$(UNIDIR)/uniprot_sprot.xml.gz:  # $(UNIDIR)/uniprot_trembl.xml.gz:
+$(UNIDIR)/uniprot_sprot.xml.gz $(UNIDIR)/uniprot_trembl.xml.gz:
 	echo "Starting downloading $@."
 	mkdir -p $(UNIDIR)
 	rm -f $@
@@ -83,7 +83,7 @@ $(TABLES): $(TABDIR)/taxons.tsv.gz $(UNIDIR)/uniprot_sprot.xml.gz
 		--go              >($(GZIP) - > $(TABDIR)/go_cross_references.tsv.gz)       \
 		--proteomes       >($(GZIP) - > $(INTDIR)/proteomes.tsv.gz)                 \
 		--proteomes-ref   >($(GZIP) - > $(TABDIR)/proteome_cross_references.tsv.gz) \
-		swissprot=<(zcat $(UNIDIR)/uniprot_sprot.xml.gz)  # trembl=<(zcat $(UNIDIR)/uniprot_trembl.xml.gz)
+		swissprot=<(zcat $(UNIDIR)/uniprot_sprot.xml.gz) trembl=<(zcat $(UNIDIR)/uniprot_trembl.xml.gz)
 	echo "Finished calculation of most tables."
 # }}}
 
