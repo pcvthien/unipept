@@ -35,6 +35,7 @@ public class TaxonsUniprots2Tables {
     @Parameter(names="--go",              description="GO references TSV output file")        public String goCrossReferencesFile;
     @Parameter(names="--proteomes",       description="Proteomes TSV output file")            public String proteomesFile;
     @Parameter(names="--proteomes-ref",   description="Proteomes references TSV output file") public String proteomeCrossReferencesFile;
+    @Parameter(names="--biocyc-ref",   description="BioCyc references TSV output file") public String biocycCrossReferencesFile;
 
     /**
      * Parse the uniprot xml files into TSV tables.

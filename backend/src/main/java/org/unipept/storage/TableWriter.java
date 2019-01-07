@@ -4,16 +4,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.io.IOException;
-import java.io.File;
 import java.sql.Timestamp;
 
 import org.unipept.xml.*;
-import org.unipept.storage.CSV;
 import org.unipept.taxons.TaxonList;
 import org.unipept.tools.TaxonsUniprots2Tables;
 
@@ -48,6 +44,7 @@ public class TableWriter implements UniprotObserver {
     private CSV.IndexedWriter ecCrossReferences;
     private CSV.IndexedWriter proteomeCrossReferences;
     private CSV.IndexedWriter proteomes;
+    private CSV.IndexedWriter biocycCrossReferences;
 
     /**
      * Creates a new data object
@@ -67,6 +64,7 @@ public class TableWriter implements UniprotObserver {
             emblCrossReferences = new CSV.IndexedWriter(args.emblCrossReferencesFile);
             goCrossReferences = new CSV.IndexedWriter(args.goCrossReferencesFile);
             proteomeCrossReferences = new CSV.IndexedWriter(args.proteomeCrossReferencesFile);
+            biocycCrossReferences = new CSV.IndexedWriter(args.biocycCrossReferencesFile);
         } catch(IOException e) {
             System.err.println(new Timestamp(System.currentTimeMillis())
                     + " Error creating tsv files");
@@ -104,6 +102,8 @@ public class TableWriter implements UniprotObserver {
                 addECRef(ref, uniprotEntryId);
             for (UniprotProteomeRef ref : entry.getProtReferences())
                 addProteomeRef(ref, uniprotEntryId);
+            for (UniprotBiocycRef ref : entry.getBcReferences())
+                addBiocycRef(ref, uniprotEntryId, entry.getSequence());
         }
     }
 
@@ -287,6 +287,25 @@ public class TableWriter implements UniprotObserver {
 
     }
 
+    /**
+     * Adds a biocyc reference to the database
+     *
+     * @param ref
+     *            The biocyc reference to add
+     * @param uniprotEntryId
+     *            The uniprotEntry of the cross reference
+     */
+    public void addBiocycRef(UniprotBiocycRef ref, long uniprotEntryId, String sequence) {
+        try {                                                                                         // | TODO: remove this sequence
+            biocycCrossReferences.write(Long.toString(uniprotEntryId), ref.getDbId(), ref.getProteinId(), sequence);
+        } catch (IOException e) {
+            System.err.println(new Timestamp(System.currentTimeMillis())
+                    + " Error adding this BioCyc reference to the database.");
+            e.printStackTrace();
+        }
+
+    }
+
     @Override
     public void handleEntry(UniprotEntry entry) {
         store(entry);
@@ -302,6 +321,7 @@ public class TableWriter implements UniprotObserver {
             goCrossReferences.close();
             ecCrossReferences.close();
             proteomeCrossReferences.close();
+            biocycCrossReferences.close();
             proteomes.close();
         } catch(IOException e) {
             System.err.println(new Timestamp(System.currentTimeMillis())

@@ -25,6 +25,7 @@ public class UniprotEntry {
     private List<UniprotDbRef> dbReferences;
     private List<UniprotGORef> goReferences;
     private List<UniprotECRef> ecReferences;
+    private List<UniprotBiocycRef> bcReferences;
     private List<UniprotProteomeRef> protReferences;
     private List<String> sequences;
 
@@ -32,11 +33,12 @@ public class UniprotEntry {
         this.type = type;
         this.peptideMin = peptideMin;
         this.peptideMax = peptideMax;
-        dbReferences = new ArrayList<UniprotDbRef>();
-        goReferences = new ArrayList<UniprotGORef>();
-        ecReferences = new ArrayList<UniprotECRef>();
-        protReferences = new ArrayList<UniprotProteomeRef>();
-        sequences = new ArrayList<String>();
+        dbReferences = new ArrayList<>();
+        goReferences = new ArrayList<>();
+        ecReferences = new ArrayList<>();
+        bcReferences = new ArrayList<>();
+        protReferences = new ArrayList<>();
+        sequences = new ArrayList<>();
     }
 
     public void reset(String type) {
@@ -51,6 +53,7 @@ public class UniprotEntry {
         goReferences.clear();
         ecReferences.clear();
         protReferences.clear();
+        bcReferences.clear();
         sequences.clear();
     }
 
@@ -126,6 +129,10 @@ public class UniprotEntry {
         protReferences.add(ref);
     }
 
+    public void addBcRef(UniprotBiocycRef bcRef) {
+        this.bcReferences.add(bcRef);
+    }
+
     public List<String> digest() {
         sequences.clear();
         int start = 0;
@@ -161,11 +168,13 @@ public class UniprotEntry {
         return protReferences;
     }
 
+    public List<UniprotBiocycRef> getBcReferences() {
+        return bcReferences;
+    }
 
     @Override
     public String toString() {
         return uniprotAccessionNumber + ", " + version + ", " + taxonId + ", " + type + ", "
                 + sequence;
     }
-
 }
