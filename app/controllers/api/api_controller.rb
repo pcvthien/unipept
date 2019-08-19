@@ -308,7 +308,7 @@ class Api::ApiController < ApplicationController
             end
       }
 
-      ec_numbers.push *(ecs.map { |k, _v| k[3..-1] })
+      ec_numbers.push(*(ecs.map { |k, _v| k[3..-1] }))
     end
 
     if @extra_info
@@ -350,7 +350,7 @@ class Api::ApiController < ApplicationController
             end
       }
 
-      go_terms.push *gos.keys
+      go_terms.push(*gos.keys)
     end
 
     if @extra_info || @domains
