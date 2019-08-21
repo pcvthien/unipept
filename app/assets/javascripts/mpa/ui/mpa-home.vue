@@ -1,5 +1,6 @@
 <template>
     <div class="row equal-height-row">
+        <hello-world></hello-world>
         <div class="col-md-6">
             <select-datasets-card style="min-height: 100%;"></select-datasets-card>
         </div>
@@ -14,9 +15,10 @@
     import Component from "vue-class-component";
     import LoadDatasetsCard from "./load-datasets-card.vue";
     import SelectDatasetsCard from "./select-datasets-card.vue";
+    import HelloWorld from "unipept-web-components";
 
     @Component({
-        components: {LoadDatasetsCard, SelectDatasetsCard}
+        components: {LoadDatasetsCard, SelectDatasetsCard, HelloWorld}
     })
     export default class MpaHome extends Vue {
     };
